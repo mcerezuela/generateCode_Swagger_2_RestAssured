@@ -10,7 +10,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>8</java.version>
+        <java.version>1.8</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <default.package>com.smashtik.petstore.client</default.package>
@@ -42,14 +42,15 @@
             <version>2.10.0</version>
         </dependency>
         <dependency>
-            <groupId>name.falgout.jeffrey.testing.junit5</groupId>
-            <artifactId>guice-extension</artifactId>
-            <version>1.2.1</version>
-        </dependency>
-        <dependency>
             <groupId>javax.annotation</groupId>
             <artifactId>javax.annotation-api</artifactId>
             <version>1.3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -66,7 +67,7 @@
                         </goals>
                         <configuration>
                             <inputSpec>${project.basedir}\src\main\resources\petstore.json</inputSpec>
-                            <output>${project.build.directory}\generated-sources\swagger</output>
+                            <output>${project.basedir}\</output>
                             <language>java</language>
                             <configOptions>
                                 <interfaceOnly>true</interfaceOnly>

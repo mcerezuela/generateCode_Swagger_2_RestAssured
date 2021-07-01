@@ -15,27 +15,27 @@ We proceed to generate the source code
 
 This will generate the following Tree:
 
-'-> tree target/generated-sources/swagger/'
+'-> tree src'
 
-\GENERATECODE_SWAGGER_2_RESTASSURED\TARGET\GENERATED-SOURCES\SWAGGER
-
-├───.swagger-codegen
-├───gradle
-│   └───wrapper
-└───src
+\SRC
 ├───main
-│   └───java
-│       └───org
-│           └───smashtik
-│               └───petstore
-│                   ├───api
-│                   ├───handler
-│                   └───model
+│   ├───java
+│   │   └───com
+│   │       └───smashtik
+│   │           └───petstore
+│   │               └───client
+│   │                   ├───api
+│   │                   └───model
+│   └───resources
 └───test
-└───java
-└───org
-└───smashtik
-└───petstore
-└───api
+    └───java
+        └───com
+            └───smashtik
+                └───petstore
+                    └───client
+                        └───api
+
+
+
 
 
