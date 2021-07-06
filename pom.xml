@@ -74,7 +74,7 @@
                                 <dateLibrary>java8</dateLibrary>
                             </configOptions>
                             <library>rest-assured</library>
-                            <generateApiTests>true</generateApiTests>
+                            <generateApiTests>false</generateApiTests>
                             <generateApiDocumentation>false</generateApiDocumentation>
                             <generateModelDocumentation>false</generateModelDocumentation>
                             <generateSupportingFiles>true</generateSupportingFiles>
