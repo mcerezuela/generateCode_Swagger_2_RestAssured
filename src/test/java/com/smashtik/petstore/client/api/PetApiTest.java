@@ -15,8 +15,13 @@ package com.smashtik.petstore.client.api;
 
 import com.smashtik.petstore.client.ApiClient;
 import com.smashtik.petstore.client.model.Pet;
+import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.filter.log.ErrorLoggingFilter;
+import io.restassured.internal.common.assertion.Assertion;
+import io.restassured.response.Response;
+import org.apache.http.HttpStatus;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -86,10 +91,12 @@ public class PetApiTest {
      */
     @Test
     public void shouldSee200AfterFindPetsByStatus() {
-        List<String> status = null;
-        api.findPetsByStatus()
+        String status = Pet.StatusEnum.AVAILABLE.getValue();
+        Response response = api.findPetsByStatus()
                 .statusQuery(status).execute(r -> r.prettyPeek());
-        // TODO: test validations
+        response.
+                then().statusCode(HttpStatus.SC_OK);
+        Assert.assertTrue("No Pets found",0< response.as(Pet[].class).length);
     }
 
     /**
@@ -132,10 +139,11 @@ public class PetApiTest {
      */
     @Test
     public void shouldSee200AfterGetPetById() {
-        Long petId = null;
-        api.getPetById()
-                .petIdPath(petId).execute(r -> r.prettyPeek());
+        Long petId = 9223372000000118000L;
+        Pet pet = api.getPetById()
+                .petIdPath(petId).execute(r -> r.prettyPeek()).as(Pet.class);
         // TODO: test validations
+        System.out.println("RESPONSE: "+pet.toString());
     }
 
     /**
