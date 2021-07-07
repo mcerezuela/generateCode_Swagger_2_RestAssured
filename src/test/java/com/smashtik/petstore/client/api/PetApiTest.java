@@ -189,7 +189,7 @@ public class PetApiTest {
      */
     @Test
     public void shouldSee400AfterUpdatePet() {
-        Pet body = PetUtils.getRandomPet();
+        Pet body = PetUtils.modifyRandomPet();
         api.updatePet()
                 .body(body).execute(r -> r.prettyPeek())
                 .then()
