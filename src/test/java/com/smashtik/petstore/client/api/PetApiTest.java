@@ -14,12 +14,12 @@
 package com.smashtik.petstore.client.api;
 
 import com.smashtik.petstore.client.ApiClient;
+import com.smashtik.petstore.client.api.test.utils.PetUtils;
 import com.smashtik.petstore.client.model.Pet;
-import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.filter.log.ErrorLoggingFilter;
-import io.restassured.internal.common.assertion.Assertion;
 import io.restassured.response.Response;
+
 import org.apache.http.HttpStatus;
 import org.junit.Assert;
 import org.junit.Before;
@@ -40,6 +40,7 @@ import static io.restassured.config.RestAssuredConfig.config;
 public class PetApiTest {
 
     private PetApi api;
+    boolean debug = false;
 
     @Before
     public void createApi() {
@@ -47,17 +48,24 @@ public class PetApiTest {
                 () -> new RequestSpecBuilder().setConfig(config().objectMapperConfig(objectMapperConfig().defaultObjectMapper(gson())))
                         .addFilter(new ErrorLoggingFilter())
                         .setBaseUri("https://petstore.swagger.io/v2"))).pet();
+
+        if(PetUtils.getPetsList().size()==0){
+            getAllPets();
+        }
     }
+
 
     /**
      * Invalid input
      */
     @Test
     public void shouldSee405AfterAddPet() {
-        Pet body = null;
+        Pet body = PetUtils.createNewPet();
+        Assert.assertFalse("No Pet Created",body.equals(null));
         api.addPet()
-                .body(body).execute(r -> r.prettyPeek());
-        // TODO: test validations
+                .body(body).execute(r -> r.prettyPeek())
+                .then()
+                .statusCode(HttpStatus.SC_METHOD_NOT_ALLOWED);;
     }
 
 
@@ -66,11 +74,11 @@ public class PetApiTest {
      */
     @Test
     public void shouldSee400AfterDeletePet() {
-        Long petId = null;
-        String apiKey = null;
+        Long petId = -1000L;
         api.deletePet()
-                .petIdPath(petId).execute(r -> r.prettyPeek());
-        // TODO: test validations
+                .petIdPath(petId).execute(r -> r.prettyPeek())
+                .then()
+                .statusCode(HttpStatus.SC_METHOD_NOT_ALLOWED);
     }
 
     /**
@@ -78,11 +86,12 @@ public class PetApiTest {
      */
     @Test
     public void shouldSee404AfterDeletePet() {
-        Long petId = null;
+        Long petId = -1000L;
         String apiKey = null;
         api.deletePet()
-                .petIdPath(petId).execute(r -> r.prettyPeek());
-        // TODO: test validations
+                .petIdPath(petId).execute(r -> r.prettyPeek())
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
 
@@ -92,10 +101,10 @@ public class PetApiTest {
     @Test
     public void shouldSee200AfterFindPetsByStatus() {
         String status = Pet.StatusEnum.AVAILABLE.getValue();
-        Response response = api.findPetsByStatus()
-                .statusQuery(status).execute(r -> r.prettyPeek());
-        response.
-                then().statusCode(HttpStatus.SC_OK);
+        Response response = findPetsByStatus(status);
+        response
+                .then()
+                .statusCode(HttpStatus.SC_OK);
         Assert.assertTrue("No Pets found",0< response.as(Pet[].class).length);
     }
 
@@ -104,10 +113,11 @@ public class PetApiTest {
      */
     @Test
     public void shouldSee400AfterFindPetsByStatus() {
-        List<String> status = null;
+        String status = "test";
         api.findPetsByStatus()
-                .statusQuery(status).execute(r -> r.prettyPeek());
-        // TODO: test validations
+                .statusQuery(status).execute(r -> r.prettyPeek())
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
 
@@ -116,10 +126,11 @@ public class PetApiTest {
      */
     @Test
     public void shouldSee200AfterFindPetsByTags() {
-        List<String> tags = null;
+        String tags = null;
         api.findPetsByTags()
-                .tagsQuery(tags).execute(r -> r.prettyPeek());
-        // TODO: test validations
+                .tagsQuery(tags).execute(r -> r.prettyPeek())
+                .then()
+                .statusCode(HttpStatus.SC_OK);
     }
 
     /**
@@ -129,8 +140,9 @@ public class PetApiTest {
     public void shouldSee400AfterFindPetsByTags() {
         List<String> tags = null;
         api.findPetsByTags()
-                .tagsQuery(tags).execute(r -> r.prettyPeek());
-        // TODO: test validations
+                .tagsQuery(tags).execute(r -> r.prettyPeek())
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
 
@@ -139,11 +151,12 @@ public class PetApiTest {
      */
     @Test
     public void shouldSee200AfterGetPetById() {
-        Long petId = 9223372000000118000L;
-        Pet pet = api.getPetById()
-                .petIdPath(petId).execute(r -> r.prettyPeek()).as(Pet.class);
-        // TODO: test validations
-        System.out.println("RESPONSE: "+pet.toString());
+        Long petId = PetUtils.getRandomPet().getId();
+        Response response = api.getPetById()
+                .petIdPath(petId).execute(r -> r)
+                .then()
+                .statusCode(HttpStatus.SC_OK).extract().response();
+        if(debug)System.out.println("RESPONSE: "+response.as(Pet.class).toString());
     }
 
     /**
@@ -151,10 +164,11 @@ public class PetApiTest {
      */
     @Test
     public void shouldSee400AfterGetPetById() {
-        Long petId = null;
+        Long petId = 0L;
         api.getPetById()
-                .petIdPath(petId).execute(r -> r.prettyPeek());
-        // TODO: test validations
+                .petIdPath(petId).execute(r -> r.prettyPeek())
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
     /**
@@ -162,10 +176,11 @@ public class PetApiTest {
      */
     @Test
     public void shouldSee404AfterGetPetById() {
-        Long petId = null;
+        Long petId = 0L;
         api.getPetById()
-                .petIdPath(petId).execute(r -> r.prettyPeek());
-        // TODO: test validations
+                .petIdPath(petId).execute(r -> r.prettyPeek())
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
 
@@ -174,10 +189,11 @@ public class PetApiTest {
      */
     @Test
     public void shouldSee400AfterUpdatePet() {
-        Pet body = null;
+        Pet body = PetUtils.getRandomPet();
         api.updatePet()
-                .body(body).execute(r -> r.prettyPeek());
-        // TODO: test validations
+                .body(body).execute(r -> r.prettyPeek())
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
     /**
@@ -185,10 +201,12 @@ public class PetApiTest {
      */
     @Test
     public void shouldSee404AfterUpdatePet() {
-        Pet body = null;
+        Pet body = PetUtils.getRandomPet();
+        body.setId(-10000L);
         api.updatePet()
-                .body(body).execute(r -> r.prettyPeek());
-        // TODO: test validations
+                .body(body).execute(r -> r.prettyPeek())
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     /**
@@ -196,10 +214,12 @@ public class PetApiTest {
      */
     @Test
     public void shouldSee405AfterUpdatePet() {
-        Pet body = null;
+        Pet body = PetUtils.getRandomPet();
+        body.setId(-10000L);
         api.updatePet()
-                .body(body).execute(r -> r.prettyPeek());
-        // TODO: test validations
+                .body(body).execute(r -> r.prettyPeek())
+                .then()
+                .statusCode(HttpStatus.SC_METHOD_NOT_ALLOWED);
     }
 
 
@@ -208,12 +228,15 @@ public class PetApiTest {
      */
     @Test
     public void shouldSee405AfterUpdatePetWithForm() {
-        Long petId = null;
-        String name = null;
-        String status = null;
+        Long petId = PetUtils.getRandomPet().getId();
+        String name = PetUtils.getRandomPet().getName();
+        String status = PetUtils.getRandomPet().getStatus().getValue();
         api.updatePetWithForm()
-                .petIdPath(petId).execute(r -> r.prettyPeek());
-        // TODO: test validations
+                .petIdPath(petId)
+                .nameForm(name+"&status="+status)
+                .execute(r -> r.prettyPeek())
+                .then()
+                .statusCode(HttpStatus.SC_METHOD_NOT_ALLOWED);
     }
 
 
@@ -222,12 +245,35 @@ public class PetApiTest {
      */
     @Test
     public void shouldSee200AfterUploadFile() {
-        Long petId = null;
-        String additionalMetadata = null;
-        File file = null;
+        Long petId = PetUtils.getRandomPet().getId();
+        String additionalMetadata = PetUtils.getRandomPet().getName();
+        File file = new File("src/test/resources/red_panda.jpg");
         api.uploadFile()
-                .petIdPath(petId).execute(r -> r.prettyPeek());
-        // TODO: test validations
+                .petIdPath(petId)
+                .additionalMetadataForm(additionalMetadata)
+                .fileMultiPart(file)
+                .execute(r -> r.prettyPeek())
+                .then()
+                .statusCode(HttpStatus.SC_OK);
     }
 
+    private void getAllPets() {
+        PetUtils.addPets(findPetsByStatus(Pet.StatusEnum.AVAILABLE.getValue())
+                .as(Pet[].class));
+        PetUtils.addPets(findPetsByStatus(Pet.StatusEnum.SOLD.getValue())
+                .as(Pet[].class));
+        PetUtils.addPets(findPetsByStatus(Pet.StatusEnum.PENDING.getValue())
+                .as(Pet[].class));
+        Assert.assertTrue("No Pets",PetUtils.getPetsList().size()>=1);
+    }
+
+    private Response findPetsByStatus(String status) {
+        if(debug){
+            return api.findPetsByStatus()
+                    .statusQuery(status).execute(r -> r.prettyPeek());
+        }else{
+            return api.findPetsByStatus()
+                    .statusQuery(status).execute(r -> r);
+        }
+    }
 }
