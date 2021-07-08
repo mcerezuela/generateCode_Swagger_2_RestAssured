@@ -52,9 +52,6 @@ public class PetUtils {
     }
 
     private static int generateRandomNumber(int max, int min){
-        Random random = new Random();
-        int num = random.nextInt((max - min));
-        if(debug)System.out.println("NUMBER: "+num);
-        return num;
+        return CommonUtils.generateCommonRandomNumber(max, min);
     }
 }

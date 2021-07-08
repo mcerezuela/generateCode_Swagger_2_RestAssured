@@ -14,9 +14,13 @@
 package com.smashtik.petstore.client.api;
 
 import com.smashtik.petstore.client.ApiClient;
+import com.smashtik.petstore.client.api.test.utils.PetUtils;
+import com.smashtik.petstore.client.api.test.utils.StoreUtils;
 import com.smashtik.petstore.client.model.Order;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.filter.log.ErrorLoggingFilter;
+import io.restassured.response.Response;
+import org.apache.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -32,6 +36,7 @@ import static io.restassured.config.RestAssuredConfig.config;
 public class StoreApiTest {
 
     private StoreApi api;
+    private PetApiTest petApiTest = new PetApiTest();
 
     @Before
     public void createApi() {
@@ -39,6 +44,7 @@ public class StoreApiTest {
                 () -> new RequestSpecBuilder().setConfig(config().objectMapperConfig(objectMapperConfig().defaultObjectMapper(gson())))
                         .addFilter(new ErrorLoggingFilter())
                         .setBaseUri("https://petstore.swagger.io/v2"))).store();
+        petApiTest.createApi();
     }
 
     /**
@@ -46,10 +52,11 @@ public class StoreApiTest {
      */
     @Test
     public void shouldSee400AfterDeleteOrder() {
-        Long orderId = null;
+        String orderId = "-1000L";
         api.deleteOrder()
-                .orderIdPath(orderId).execute(r -> r.prettyPeek());
-        // TODO: test validations
+                .orderIdPath(orderId).execute(r -> r.prettyPeek())
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
     /**
@@ -57,10 +64,11 @@ public class StoreApiTest {
      */
     @Test
     public void shouldSee404AfterDeleteOrder() {
-        Long orderId = null;
+        Long orderId = -1000L;
         api.deleteOrder()
-                .orderIdPath(orderId).execute(r -> r.prettyPeek());
-        // TODO: test validations
+                .orderIdPath(orderId).execute(r -> r.prettyPeek())
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
 
@@ -69,9 +77,9 @@ public class StoreApiTest {
      */
     @Test
     public void shouldSee200AfterGetInventory() {
-        api.getInventory().execute(r -> r.prettyPeek());
-        // TODO: test validations
-    }
+        api.getInventory().execute(r -> r.prettyPeek())
+                .then()
+                .statusCode(HttpStatus.SC_OK);}
 
 
     /**
@@ -79,10 +87,11 @@ public class StoreApiTest {
      */
     @Test
     public void shouldSee200AfterGetOrderById() {
-        Long orderId = null;
+        Long orderId = placeRandomOrder().as(Order.class).getId();
         api.getOrderById()
-                .orderIdPath(orderId).execute(r -> r.prettyPeek());
-        // TODO: test validations
+                .orderIdPath(orderId).execute(r -> r.prettyPeek())
+                .then()
+                .statusCode(HttpStatus.SC_OK);
     }
 
     /**
@@ -90,10 +99,11 @@ public class StoreApiTest {
      */
     @Test
     public void shouldSee400AfterGetOrderById() {
-        Long orderId = null;
+        String orderId = "-1000L";
         api.getOrderById()
-                .orderIdPath(orderId).execute(r -> r.prettyPeek());
-        // TODO: test validations
+                .orderIdPath(orderId).execute(r -> r.prettyPeek())
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
     /**
@@ -101,10 +111,11 @@ public class StoreApiTest {
      */
     @Test
     public void shouldSee404AfterGetOrderById() {
-        Long orderId = null;
+        Long orderId = -1000L;
         api.getOrderById()
-                .orderIdPath(orderId).execute(r -> r.prettyPeek());
-        // TODO: test validations
+                .orderIdPath(orderId).execute(r -> r.prettyPeek())
+                .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
 
@@ -113,10 +124,13 @@ public class StoreApiTest {
      */
     @Test
     public void shouldSee200AfterPlaceOrder() {
-        Order body = null;
-        api.placeOrder()
-                .body(body).execute(r -> r.prettyPeek());
-        // TODO: test validations
+        Response responseOrder = placeRandomOrder();
+        responseOrder.then()
+                .statusCode(HttpStatus.SC_OK);
+        api.deleteOrder()
+                .orderIdPath(responseOrder.as(Order.class).getId()).execute(r -> r.prettyPeek())
+                .then()
+                .statusCode(HttpStatus.SC_OK);
     }
 
     /**
@@ -124,10 +138,17 @@ public class StoreApiTest {
      */
     @Test
     public void shouldSee400AfterPlaceOrder() {
-        Order body = null;
+        Order body = StoreUtils.createRandomOrder();
         api.placeOrder()
+                .body(body).execute(r -> r.prettyPeek())
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+    private Response placeRandomOrder() {
+        Order body = StoreUtils.createRandomOrder();
+        return api.placeOrder()
                 .body(body).execute(r -> r.prettyPeek());
-        // TODO: test validations
     }
 
 }
